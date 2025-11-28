@@ -1,0 +1,117 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 221 83% 53%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222 47% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Accessibility Styles */
+.high-contrast {
+  filter: contrast(1.5);
+}
+
+.large-text * {
+  font-size: 1.2em !important;
+  line-height: 1.6 !important;
+}
+
+.highlight-links a {
+  background-color: yellow !important;
+  color: black !important;
+  text-decoration: underline !important;
+  padding: 2px 4px !important;
+}
+
+.dark .highlight-links a {
+  background-color: #FFD700 !important;
+  color: #000 !important;
+}
+
+.large-cursor,
+.large-cursor * {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M2 2 L2 28 L12 18 L18 28 L22 26 L16 16 L28 16 Z" fill="black" stroke="white" stroke-width="1"/></svg>') 0 0, auto !important;
+}
+
+.large-cursor button,
+.large-cursor a {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M10 2 L10 10 L2 10 L2 14 L10 14 L10 22 L14 22 L14 14 L22 14 L22 10 L14 10 L14 2 Z" fill="black" stroke="white" stroke-width="1"/></svg>') 8 8, pointer !important;
+}
+
+/* Subtle African-inspired textile background for hero sections */
+.bg-african-textile {
+  background-image:
+    linear-gradient(135deg, rgba(245, 158, 11, 0.08) 25%, transparent 25%, transparent 50%, rgba(245, 158, 11, 0.08) 50%, rgba(245, 158, 11, 0.08) 75%, transparent 75%, transparent),
+    linear-gradient(225deg, rgba(16, 185, 129, 0.08) 25%, transparent 25%, transparent 50%, rgba(16, 185, 129, 0.08) 50%, rgba(16, 185, 129, 0.08) 75%, transparent 75%, transparent);
+  background-size: 40px 40px;
+}
