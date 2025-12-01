@@ -1,27 +1,29 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Shield, Lock, Heart, ArrowRight, Calendar, FileText, Bell } from 'lucide-react';
+import { Shield, Lock, Heart, ArrowRight, Bell, FileText, Calendar } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+
 
 export default function LandingPage() {
     const { isAuthenticated } = useAuth();
 
+
     return (
         <div className="flex flex-col min-h-screen">
             {/* Hero Section */}
-            <section className="relative py-20 md:py-32 overflow-hidden bg-gradient-to-b from-amber-50 via-orange-50 to-emerald-50 dark:from-slate-900 dark:via-slate-950 dark:to-slate-950 bg-african-textile">
-                <div className="container relative z-10 text-center">
+            <section className="relative py-12 md:py-32 overflow-hidden bg-gradient-to-b from-amber-50 via-orange-50 to-emerald-50 dark:from-slate-900 dark:via-slate-950 dark:to-slate-950 bg-african-textile">
+                <div className="container relative z-10 text-center px-4 sm:px-6">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5 }}
                     >
-                        <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-amber-700 via-orange-700 to-emerald-700 dark:from-amber-300 dark:via-orange-300 dark:to-emerald-300">
-                            You Are Not Alone. <br /> We Are Here To Help.
+                        <h1 className="text-3xl sm:text-4xl md:text-6xl font-extrabold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-amber-700 via-orange-700 to-emerald-700 dark:from-amber-300 dark:via-orange-300 dark:to-emerald-300">
+                            You Are Not Alone. <br className="hidden sm:block" /> We Are Here To Help.
                         </h1>
-                        <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
+                        <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 px-4">
                             A safe, secure, and anonymous platform to report digital violence, find professional support, and connect with a caring community.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -108,9 +110,10 @@ export default function LandingPage() {
                 </section>
             )}
 
+
             {/* Features Section */}
-            <section className="py-20 bg-muted/50">
-                <div className="container">
+            <section className="py-12 md:py-20 bg-muted/50">
+                <div className="container px-4 sm:px-6">
                     <div className="text-center mb-16">
                         <h2 className="text-3xl font-bold mb-4">How We Help</h2>
                         <p className="text-muted-foreground max-w-2xl mx-auto">
@@ -118,7 +121,7 @@ export default function LandingPage() {
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                         <Card className="border-none shadow-lg hover:shadow-xl transition-all duration-300">
                             <CardHeader>
                                 <div className="h-12 w-12 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mb-4 text-amber-700 dark:text-amber-300">
@@ -180,9 +183,9 @@ export default function LandingPage() {
             </section>
 
             {/* Privacy Section */}
-            <section className="py-20">
-                <div className="container">
-                    <div className="bg-primary/5 rounded-3xl p-8 md:p-12 flex flex-col md:flex-row items-center gap-12">
+            <section className="py-12 md:py-20">
+                <div className="container px-4 sm:px-6">
+                    <div className="bg-primary/5 rounded-2xl md:rounded-3xl p-6 md:p-8 lg:p-12 flex flex-col md:flex-row items-center gap-8 md:gap-12">
                         <div className="flex-1 space-y-6">
                             <h2 className="text-3xl font-bold">Your Privacy is Our Priority</h2>
                             <p className="text-lg text-muted-foreground">
@@ -225,10 +228,10 @@ export default function LandingPage() {
             </section>
 
             {/* CTA Section */}
-            <section className="py-20 bg-primary text-primary-foreground">
-                <div className="container text-center">
-                    <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to take the first step?</h2>
-                    <p className="text-primary-foreground/80 text-lg max-w-2xl mx-auto mb-10">
+            <section className="py-12 md:py-20 bg-primary text-primary-foreground">
+                <div className="container text-center px-4 sm:px-6">
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 md:mb-6">Ready to take the first step?</h2>
+                    <p className="text-primary-foreground/80 text-base sm:text-lg max-w-2xl mx-auto mb-8 md:mb-10">
                         Whether you need to report an incident, find a counselor, or just talk to someone who understands, we are here for you.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">

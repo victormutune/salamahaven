@@ -9,10 +9,21 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
+type ThemeProviderProps = {
+    children: ReactNode;
+    defaultTheme?: Theme;
+    storageKey?: string;
+};
+
+export function ThemeProvider({
+    children,
+    defaultTheme = 'system',
+    storageKey = 'vite-ui-theme',
+    ...props
+}: ThemeProviderProps) {
     const [theme, setTheme] = useState<Theme>(() => {
-        const stored = localStorage.getItem('theme') as Theme;
-        return stored || 'system';
+        const stored = localStorage.getItem(storageKey) as Theme;
+        return stored || defaultTheme;
     });
 
     useEffect(() => {
@@ -32,12 +43,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const value = {
         theme,
         setTheme: (newTheme: Theme) => {
-            localStorage.setItem('theme', newTheme);
+            localStorage.setItem(storageKey, newTheme);
             setTheme(newTheme);
         },
     };
 
-    return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+    return (
+        <ThemeContext.Provider {...props} value={value}>
+            {children}
+        </ThemeContext.Provider>
+    );
 }
 
 export function useTheme() {

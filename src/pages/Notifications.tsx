@@ -1,83 +1,145 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Bell, CheckCircle, AlertCircle, Info, Calendar, MessageSquare, FileText } from 'lucide-react';
+import { Bell, CheckCircle, AlertCircle, Info, Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
+import { formatDistanceToNow } from 'date-fns';
+
+interface Notification {
+    id: string;
+    type: 'info' | 'success' | 'warning' | 'error';
+    title: string;
+    message: string;
+    created_at: string;
+    read: boolean;
+    link?: string;
+}
 
 export default function Notifications() {
-    const notifications = [
-        {
-            id: 1,
-            type: 'success',
-            icon: CheckCircle,
-            title: 'Report Status Updated',
-            message: 'Your incident report #1234 has been reviewed and is now in progress.',
-            time: '2 hours ago',
-            read: false
-        },
-        {
-            id: 2,
-            type: 'info',
-            icon: Calendar,
-            title: 'Upcoming Counseling Session',
-            message: 'You have a session scheduled with Dr. Sarah Johnson tomorrow at 2:00 PM.',
-            time: '5 hours ago',
-            read: false
-        },
-        {
-            id: 3,
-            type: 'info',
-            icon: MessageSquare,
-            title: 'New Community Reply',
-            message: 'Someone replied to your post in the Support & Recovery forum.',
-            time: '1 day ago',
-            read: true
-        },
-        {
-            id: 4,
-            type: 'warning',
-            icon: AlertCircle,
-            title: 'Security Alert',
-            message: 'We noticed a login from a new device. If this wasn\'t you, please secure your account.',
-            time: '2 days ago',
-            read: true
-        },
-        {
-            id: 5,
-            type: 'info',
-            icon: FileText,
-            title: 'Report Submitted Successfully',
-            message: 'Your incident report has been securely submitted and assigned case number #1234.',
-            time: '3 days ago',
-            read: true
+    const { user } = useAuth();
+    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    const fetchNotifications = async () => {
+        if (!user) return;
+        try {
+            const { data, error } = await supabase
+                .from('notifications')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+            setNotifications(data || []);
+        } catch (error) {
+            console.error('Error fetching notifications:', error);
+        } finally {
+            setLoading(false);
         }
-    ];
+    };
+
+    useEffect(() => {
+        fetchNotifications();
+
+        // Subscribe to real-time changes
+        const subscription = supabase
+            .channel('notifications_channel')
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'notifications',
+                filter: `user_id=eq.${user?.id}`
+            }, () => {
+                fetchNotifications();
+            })
+            .subscribe();
+
+        return () => {
+            subscription.unsubscribe();
+        };
+    }, [user]);
+
+    const markAsRead = async (id: string) => {
+        try {
+            const { error } = await supabase
+                .from('notifications')
+                .update({ read: true })
+                .eq('id', id);
+
+            if (error) throw error;
+
+            // Optimistic update
+            setNotifications(notifications.map(n => n.id === id ? { ...n, read: true } : n));
+        } catch (error) {
+            console.error('Error marking as read:', error);
+        }
+    };
+
+    const markAllAsRead = async () => {
+        try {
+            const { error } = await supabase
+                .from('notifications')
+                .update({ read: true })
+                .eq('user_id', user?.id)
+                .eq('read', false);
+
+            if (error) throw error;
+
+            setNotifications(notifications.map(n => ({ ...n, read: true })));
+        } catch (error) {
+            console.error('Error marking all as read:', error);
+        }
+    };
+
+    const getIcon = (type: string) => {
+        switch (type) {
+            case 'success': return CheckCircle;
+            case 'warning': return AlertCircle;
+            case 'error': return AlertCircle;
+            case 'info':
+            default: return Info;
+        }
+    };
 
     const getIconColor = (type: string) => {
         switch (type) {
             case 'success': return 'text-green-600';
             case 'warning': return 'text-yellow-600';
-            case 'info': return 'text-blue-600';
-            default: return 'text-gray-600';
+            case 'error': return 'text-red-600';
+            case 'info':
+            default: return 'text-blue-600';
         }
     };
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center min-h-[50vh]">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        );
+    }
 
     return (
         <div className="container py-10 max-w-4xl">
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold flex items-center gap-2">
+                    <h1 className="text-3xl font-extrabold flex items-center gap-2 bg-clip-text text-transparent bg-gradient-to-r from-amber-700 via-orange-700 to-emerald-700 dark:from-amber-300 dark:via-orange-300 dark:to-emerald-300">
                         <Bell className="h-8 w-8 text-primary" />
                         Notifications
                     </h1>
                     <p className="text-muted-foreground mt-2">Stay updated on your reports, appointments, and community activity.</p>
                 </div>
-                <Button variant="outline" size="sm">
-                    Mark all as read
-                </Button>
+                {notifications.some(n => !n.read) && (
+                    <Button variant="outline" size="sm" onClick={markAllAsRead}>
+                        Mark all as read
+                    </Button>
+                )}
             </div>
 
             <div className="space-y-4">
                 {notifications.map((notification) => {
-                    const Icon = notification.icon;
+                    const Icon = getIcon(notification.type);
                     return (
                         <Card
                             key={notification.id}
@@ -100,12 +162,12 @@ export default function Notifications() {
                                                 {notification.message}
                                             </p>
                                             <p className="text-xs text-muted-foreground mt-2">
-                                                {notification.time}
+                                                {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
                                             </p>
                                         </div>
                                     </div>
                                     {!notification.read && (
-                                        <Button variant="ghost" size="sm" className="text-xs">
+                                        <Button variant="ghost" size="sm" className="text-xs" onClick={() => markAsRead(notification.id)}>
                                             Mark as read
                                         </Button>
                                     )}

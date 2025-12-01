@@ -10,6 +10,7 @@ interface AuthContextType {
     login: (email: string, password: string) => Promise<{ error: any }>;
     signup: (email: string, password: string, metaData?: any) => Promise<{ error: any }>;
     logout: () => Promise<void>;
+    isAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -70,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         signup,
         logout,
+        isAdmin: user?.user_metadata?.role === 'admin',
     };
 
     return (

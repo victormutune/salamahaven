@@ -1,33 +1,71 @@
-
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { Shield, Menu, X, Settings, Bell, PhoneCall } from 'lucide-react';
+import { Shield, Menu, X, Settings, Bell, PhoneCall, LogOut, Home, FileText, Users, Heart, BookOpen, AlertTriangle } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
+import { useEffect } from 'react';
 
 export function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
     const location = useLocation();
+    const { user } = useAuth();
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    useEffect(() => {
+        if (!user) return;
+
+        const fetchUnreadCount = async () => {
+            const { count, error } = await supabase
+                .from('notifications')
+                .select('*', { count: 'exact', head: true })
+                .eq('user_id', user.id)
+                .eq('read', false);
+
+            if (!error) setUnreadCount(count || 0);
+        };
+
+        fetchUnreadCount();
+
+        // Subscribe to changes
+        const subscription = supabase
+            .channel('navbar_notifications')
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'notifications',
+                filter: `user_id=eq.${user.id}`
+            }, () => {
+                fetchUnreadCount();
+            })
+            .subscribe();
+
+        return () => {
+            subscription.unsubscribe();
+        };
+    }, [user]);
 
     const navLinks = useMemo(
         () => [
-            { name: 'Home', path: '/home' },
-            { name: 'Report', path: '/report' },
-            { name: 'Counselors', path: '/counselors' },
-            { name: 'Community', path: '/community' },
-            { name: 'Emergency', path: '/emergency', className: 'text-red-600 dark:text-red-400 font-bold' },
+            { name: 'Home', path: '/', icon: Home },
+            { name: 'Report', path: '/report', icon: FileText },
+            { name: 'Counselors', path: '/counselors', icon: Users },
+            { name: 'Community', path: '/community', icon: Heart },
+            { name: 'Resources', path: '/resources', icon: BookOpen },
+            { name: 'Emergency', path: '/emergency', icon: AlertTriangle, className: 'text-red-600 dark:text-red-400 font-bold' },
         ],
         []
     );
 
-    const isActive = (path: string) => location.pathname.startsWith(path);
+    const isActive = (path: string) => path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
 
     return (
         <>
             <nav className="sticky top-0 z-50 border-b bg-gradient-to-r from-amber-50 via-orange-50 to-emerald-50 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 backdrop-blur-md supports-[backdrop-filter]:bg-background/60 shadow-sm">
-                <div className="container mx-auto px-4">
+                <div className="container mx-auto">
                     {/* Top bar with helpline */}
-                    <div className="hidden md:flex items-center justify-between text-xs py-2 text-muted-foreground border-b border-amber-200/50 dark:border-slate-800">
+                    <div className="hidden lg:flex items-center justify-between text-xs py-2 text-muted-foreground border-b border-amber-200/50 dark:border-slate-800">
                         <div className="flex items-center gap-2">
                             <PhoneCall className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
                             <span className="text-slate-600 dark:text-slate-400">24/7 GBV Helpline: <span className="font-semibold text-emerald-700 dark:text-emerald-400">1195 (Kenya)</span> • Confidential & Free</span>
@@ -43,12 +81,12 @@ export function Navbar() {
                                 <Shield className="h-5 w-5 text-white" />
                             </div>
                             <span className="font-bold text-xl bg-gradient-to-r from-amber-600 via-orange-600 to-emerald-600 bg-clip-text text-transparent hidden sm:inline-block">
-                                SafeHaven
+                                SalamaHaven
                             </span>
                         </Link>
 
                         {/* Desktop Nav - Centered */}
-                        <div className="hidden md:flex items-center space-x-8 absolute left-1/2 transform -translate-x-1/2">
+                        <div className="hidden lg:flex items-center space-x-8 absolute left-1/2 transform -translate-x-1/2">
                             {navLinks.map((link) => (
                                 <NavLink
                                     key={link.path}
@@ -71,7 +109,7 @@ export function Navbar() {
                         </div>
 
                         {/* Right side icons */}
-                        <div className="hidden md:flex items-center space-x-2 z-10">
+                        <div className="hidden lg:flex items-center space-x-2 z-10">
                             <ThemeToggle />
                             <Link
                                 to="/notifications"
@@ -79,7 +117,9 @@ export function Navbar() {
                                 title="Notifications"
                             >
                                 <Bell className="h-5 w-5" />
-                                <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full animate-pulse"></span>
+                                {unreadCount > 0 && (
+                                    <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full animate-pulse"></span>
+                                )}
                             </Link>
                             <Link
                                 to="/settings"
@@ -90,15 +130,22 @@ export function Navbar() {
                             </Link>
                             <Link
                                 to="/report"
-                                className="ml-2 inline-flex items-center rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-emerald-500 px-5 py-2.5 text-sm font-semibold text-white shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200"
+                                className="ml-2 inline-flex items-center rounded-full bg-gradient-to-r from-amber-500 via-orange-600 to-emerald-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 border border-white/20"
                             >
                                 Get Support
+                            </Link>
+                            <Link
+                                to="/logout"
+                                className="p-2 hover:bg-muted rounded-full transition-colors text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+                                title="Log Out"
+                            >
+                                <LogOut className="h-5 w-5" />
                             </Link>
                         </div>
 
                         {/* Mobile Menu Toggle */}
                         <button
-                            className="md:hidden p-2 z-10 hover:bg-muted rounded-lg transition-colors"
+                            className="lg:hidden p-2 z-10 hover:bg-muted rounded-lg transition-colors"
                             onClick={() => setIsOpen(!isOpen)}
                             aria-label="Toggle menu"
                         >
@@ -113,68 +160,76 @@ export function Navbar() {
                 <>
                     {/* Dark backdrop overlay */}
                     <div
-                        className="md:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+                        className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
                         onClick={() => setIsOpen(false)}
                         aria-hidden="true"
                     />
 
                     {/* Mobile menu */}
-                    <div className="md:hidden fixed top-[4.5rem] left-0 right-0 border-b p-6 space-y-4 bg-background/95 backdrop-blur-md shadow-2xl z-50 animate-in slide-in-from-top duration-300">
-                        {navLinks.map((link) => (
-                            <Link
-                                key={link.path}
-                                to={link.path}
-                                className={cn(
-                                    'block text-base font-semibold py-2 px-3 rounded-lg transition-all duration-200',
-                                    isActive(link.path) 
-                                        ? 'text-primary bg-gradient-to-r from-amber-100 via-orange-100 to-emerald-100 dark:from-slate-800 dark:via-slate-800 dark:to-slate-700' 
-                                        : 'text-foreground/80 hover:text-primary hover:bg-muted',
-                                    link.className
-                                )}
-                                onClick={() => setIsOpen(false)}
-                            >
-                                {link.name}
-                            </Link>
-                        ))}
-                        
-                        <Link
-                            to="/report"
-                            className="flex w-full items-center justify-center rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-emerald-500 px-6 py-3.5 text-base font-semibold text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200"
-                            onClick={() => setIsOpen(false)}
-                        >
-                            Get Support Now
-                        </Link>
-                        
-                        <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-4">
-                            <span className="text-sm font-medium text-foreground">Theme</span>
-                            <ThemeToggle />
+                    <div className="lg:hidden fixed top-[4.5rem] left-0 right-0 border-b p-4 bg-background/95 backdrop-blur-md shadow-2xl z-50 animate-in slide-in-from-top duration-300">
+                        {/* Main Links - Text based */}
+                        <div className="space-y-1 mb-4">
+                            {navLinks.map((link) => (
+                                <Link
+                                    key={link.path}
+                                    to={link.path}
+                                    className={cn(
+                                        'flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200',
+                                        isActive(link.path)
+                                            ? 'bg-primary/10 text-primary font-semibold'
+                                            : 'hover:bg-muted text-foreground/80 hover:text-foreground',
+                                        link.className
+                                    )}
+                                    onClick={() => setIsOpen(false)}
+                                >
+                                    <link.icon className={cn("h-5 w-5", isActive(link.path) ? "text-primary" : "text-muted-foreground")} />
+                                    <span>{link.name}</span>
+                                </Link>
+                            ))}
                         </div>
-                        
-                        <div className="pt-4 border-t border-border flex items-center gap-6">
+
+                        {/* Utility Bar - Icons only */}
+                        <div className="flex items-center justify-between gap-2 pt-4 border-t border-border/50 px-2">
+                            <div className="flex items-center gap-1">
+                                <div className="p-1">
+                                    <ThemeToggle />
+                                </div>
+                                <Link
+                                    to="/notifications"
+                                    className="p-2.5 hover:bg-muted rounded-full text-muted-foreground hover:text-primary transition-colors relative"
+                                    onClick={() => setIsOpen(false)}
+                                    title="Notifications"
+                                >
+                                    <Bell className="h-5 w-5" />
+                                    {unreadCount > 0 && (
+                                        <span className="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full animate-pulse"></span>
+                                    )}
+                                </Link>
+                                <Link
+                                    to="/settings"
+                                    className="p-2.5 hover:bg-muted rounded-full text-muted-foreground hover:text-primary transition-colors"
+                                    onClick={() => setIsOpen(false)}
+                                    title="Settings"
+                                >
+                                    <Settings className="h-5 w-5" />
+                                </Link>
+                            </div>
+
                             <Link
-                                to="/notifications"
-                                className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors"
+                                to="/logout"
+                                className="p-2.5 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-full text-red-500 hover:text-red-600 transition-colors"
                                 onClick={() => setIsOpen(false)}
+                                title="Log Out"
                             >
-                                <Bell className="h-5 w-5" />
-                                Notifications
-                                <span className="h-2 w-2 bg-red-500 rounded-full animate-pulse"></span>
-                            </Link>
-                            <Link
-                                to="/settings"
-                                className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors"
-                                onClick={() => setIsOpen(false)}
-                            >
-                                <Settings className="h-5 w-5" />
-                                Settings
+                                <LogOut className="h-5 w-5" />
                             </Link>
                         </div>
 
                         {/* Mobile helpline info */}
-                        <div className="pt-4 border-t border-border">
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground bg-emerald-50 dark:bg-emerald-950/30 p-3 rounded-lg">
-                                <PhoneCall className="h-4 w-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
-                                <span>24/7 Helpline: <span className="font-semibold text-emerald-700 dark:text-emerald-400">1195</span> (Free & Confidential)</span>
+                        <div className="mt-4 pt-3 border-t border-border/50 text-center">
+                            <div className="inline-flex items-center gap-1.5 text-[10px] text-muted-foreground bg-emerald-50 dark:bg-emerald-950/30 px-3 py-1.5 rounded-full">
+                                <PhoneCall className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                                <span>Helpline: <span className="font-bold text-emerald-700 dark:text-emerald-400">1195</span></span>
                             </div>
                         </div>
                     </div>

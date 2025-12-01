@@ -1,15 +1,16 @@
 import { Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 export function Footer() {
     return (
         <footer className="border-t bg-muted/40">
-            <div className="container py-10 md:py-16">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="container py-10 md:py-16 px-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                     <div className="space-y-4">
                         <div className="flex items-center space-x-2">
                             <Shield className="h-6 w-6 text-primary" />
-                            <span className="font-bold text-lg">SafeHaven</span>
+                            <span className="font-bold text-lg">SalamaHaven</span>
                         </div>
                         <p className="text-sm text-muted-foreground">
                             A safe, secure, and supportive platform for reporting digital violence and finding help.
@@ -46,12 +47,10 @@ export function Footer() {
                         </Button>
                     </div>
                 </div>
-                <div className="mt-10 pt-6 border-t text-center text-sm text-muted-foreground">
+                <div className="mt-10 pt-6 border-t text-center text-sm text-muted-foreground px-4">
                     © {new Date().getFullYear()} SafeHaven. All rights reserved.
                 </div>
             </div>
         </footer>
     );
 }
-
-import { Button } from '@/components/ui/button';

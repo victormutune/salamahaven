@@ -35,14 +35,14 @@ export default function Login() {
     };
 
     return (
-        <div className="container relative flex items-center justify-center min-h-screen py-10">
-            <div className="absolute top-4 right-4 flex gap-2">
+        <div className="container relative flex items-center justify-center min-h-screen py-6 md:py-10 px-4 sm:px-6">
+            <div className="absolute top-2 right-2 sm:top-4 sm:right-4 flex gap-2">
                 <LanguageSwitcher />
                 <ModeToggle />
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl w-full">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 max-w-6xl w-full">
                 {/* Safety Message Section */}
-                <div className="flex flex-col justify-center space-y-6 p-8 bg-gradient-to-br from-primary/5 to-purple-50 dark:from-primary/10 dark:to-purple-950/20 rounded-2xl">
+                <div className="flex flex-col justify-center space-y-4 md:space-y-6 p-6 md:p-8 bg-gradient-to-br from-primary/5 to-purple-50 dark:from-primary/10 dark:to-purple-950/20 rounded-xl md:rounded-2xl">
                     <div className="flex items-center gap-3 mb-4">
                         <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
                             <Shield className="h-8 w-8 text-primary" />

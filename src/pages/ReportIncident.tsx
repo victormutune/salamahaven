@@ -70,7 +70,7 @@ export default function ReportIncident() {
                 incident_date: formData.date ? new Date(formData.date).toISOString() : null,
                 location_address: formData.location,
                 is_anonymous: formData.anonymous,
-                user_id: formData.anonymous ? null : user?.id,
+                user_id: formData.anonymous ? null : (user?.id || null),
                 status: 'pending'
             });
 
@@ -100,15 +100,15 @@ export default function ReportIncident() {
     ];
 
     return (
-        <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-b from-amber-50 via-orange-50 to-emerald-50/10 dark:from-slate-900 dark:via-slate-950 dark:to-slate-950 py-10">
-            <div className="container max-w-5xl">
-                <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-b from-amber-50 via-orange-50 to-emerald-50/10 dark:from-slate-900 dark:via-slate-950 dark:to-slate-950 py-6 md:py-10">
+            <div className="container max-w-5xl px-4 sm:px-6">
+                <div className="mb-6 md:mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div>
                         <div className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200">
                             <Shield className="h-3 w-3" />
                             Safe, encrypted reporting
                         </div>
-                        <h1 className="mt-4 text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50">
+                        <h1 className="mt-4 text-3xl md:text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-amber-700 via-orange-700 to-emerald-700 dark:from-amber-300 dark:via-orange-300 dark:to-emerald-300">
                             Report an Incident
                         </h1>
                         <p className="mt-2 text-sm md:text-base text-slate-600 dark:text-slate-300 max-w-xl">
@@ -127,9 +127,9 @@ export default function ReportIncident() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
                     {/* Sidebar Progress */}
-                    <div className="md:col-span-4 lg:col-span-3 space-y-6">
+                    <div className="md:col-span-4 lg:col-span-3 space-y-4 md:space-y-6">
                         <Card className="border-none bg-white/70 dark:bg-slate-900/60 shadow-md backdrop-blur-sm">
                             <CardHeader className="pb-3">
                                 <CardTitle className="text-lg">Your safety comes first</CardTitle>
@@ -149,10 +149,10 @@ export default function ReportIncident() {
                                 <div
                                     key={s.id}
                                     className={`flex items-center gap-4 rounded-xl border px-3 py-2 text-sm transition-all ${step === s.id
-                                            ? 'border-emerald-500 bg-emerald-50 text-emerald-900 dark:bg-emerald-900/30 dark:text-emerald-100'
-                                            : step > s.id
-                                                ? 'border-emerald-300 bg-emerald-50/60 text-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-100'
-                                                : 'border-slate-200 bg-white/70 text-slate-500 dark:border-slate-800 dark:bg-slate-900/60'
+                                        ? 'border-emerald-500 bg-emerald-50 text-emerald-900 dark:bg-emerald-900/30 dark:text-emerald-100'
+                                        : step > s.id
+                                            ? 'border-emerald-300 bg-emerald-50/60 text-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-100'
+                                            : 'border-slate-200 bg-white/70 text-slate-500 dark:border-slate-800 dark:bg-slate-900/60'
                                         }`}
                                 >
                                     <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-current bg-white/80 dark:bg-slate-900/80">

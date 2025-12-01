@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Check, Upload, ArrowRight, ArrowLeft, MapPin, AlertTriangle, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -22,7 +22,7 @@ export default function AnonymousReport() {
         files: [] as File[],
     });
     const navigate = useNavigate();
-    const { t } = useTranslation();
+    useTranslation();
 
     const handleNext = () => setStep(step + 1);
     const handleBack = () => setStep(step - 1);
@@ -46,7 +46,7 @@ export default function AnonymousReport() {
                         <Shield className="h-8 w-8 text-primary" />
                     </div>
                 </div>
-                <h1 className="text-3xl font-bold mb-2">Anonymous Reporting</h1>
+                <h1 className="text-3xl font-extrabold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-amber-700 via-orange-700 to-emerald-700 dark:from-amber-300 dark:via-orange-300 dark:to-emerald-300">Anonymous Reporting</h1>
                 <p className="text-muted-foreground max-w-2xl mx-auto">
                     Your safety and privacy are our top priority. This report will be submitted securely and anonymously.
                     No personal identifiable information will be recorded unless you explicitly provide it.
@@ -101,15 +101,19 @@ export default function AnonymousReport() {
                                                 <Label>Category</Label>
                                                 <Select
                                                     value={formData.category}
-                                                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                                    onValueChange={(value) => setFormData({ ...formData, category: value })}
                                                 >
-                                                    <option value="">Select a category</option>
-                                                    <option value="cyberbullying">Cyberbullying</option>
-                                                    <option value="harassment">Online Harassment</option>
-                                                    <option value="stalking">Cyberstalking</option>
-                                                    <option value="doxing">Doxing</option>
-                                                    <option value="hate-speech">Hate Speech</option>
-                                                    <option value="other">Other</option>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select a category" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="cyberbullying">Cyberbullying</SelectItem>
+                                                        <SelectItem value="harassment">Online Harassment</SelectItem>
+                                                        <SelectItem value="stalking">Cyberstalking</SelectItem>
+                                                        <SelectItem value="doxing">Doxing</SelectItem>
+                                                        <SelectItem value="hate-speech">Hate Speech</SelectItem>
+                                                        <SelectItem value="other">Other</SelectItem>
+                                                    </SelectContent>
                                                 </Select>
                                             </div>
 

@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { MessageSquare, Heart, Share2, Search, Plus, User, Shield, Send } from 'lucide-react';
+import { MessageSquare, Heart, Share2, Search, Plus, User, Shield, Send, Trash2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 
 interface Post {
     id: string;
@@ -27,6 +29,7 @@ interface Post {
     likes_count: number;
     comments_count: number;
     tags: string[];
+    author_id: string;
 }
 
 const categories = [
@@ -44,7 +47,8 @@ export default function Community() {
     const [posts, setPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [newPost, setNewPost] = useState({ title: '', content: '', tags: '' });
+    const [newPost, setNewPost] = useState({ title: '', content: '', tags: '', category: '' });
+    const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [expandedPostId, setExpandedPostId] = useState<string | null>(null);
     const [comments, setComments] = useState<Record<string, any[]>>({});
@@ -82,10 +86,15 @@ export default function Community() {
         if (!newPost.title || !newPost.content) return;
         setSubmitting(true);
         try {
+            const tagsList = newPost.tags.split(',').map(t => t.trim()).filter(t => t);
+            if (newPost.category) {
+                tagsList.push(newPost.category);
+            }
+
             const { error } = await supabase.from('community_posts').insert({
                 title: newPost.title,
                 content: newPost.content,
-                tags: newPost.tags.split(',').map(t => t.trim()).filter(t => t),
+                tags: tagsList,
                 author_id: user?.id,
                 author_name: user?.user_metadata?.full_name || 'Anonymous User',
                 author_role: 'Survivor' // Default role
@@ -93,7 +102,7 @@ export default function Community() {
 
             if (error) throw error;
 
-            setNewPost({ title: '', content: '', tags: '' });
+            setNewPost({ title: '', content: '', tags: '', category: '' });
             setIsDialogOpen(false);
             fetchPosts();
         } catch (error) {
@@ -162,6 +171,41 @@ export default function Community() {
         }
     };
 
+    const handleDeletePost = async (postId: string) => {
+        if (!confirm('Are you sure you want to delete this post?')) return;
+        try {
+            const { error } = await supabase
+                .from('community_posts')
+                .delete()
+                .eq('id', postId);
+
+            if (error) throw error;
+            setPosts(posts.filter(p => p.id !== postId));
+        } catch (error) {
+            console.error('Error deleting post:', error);
+        }
+    };
+
+    const handleDeleteComment = async (postId: string, commentId: string) => {
+        if (!confirm('Are you sure you want to delete this comment?')) return;
+        try {
+            const { error } = await supabase
+                .from('comments')
+                .delete()
+                .eq('id', commentId);
+
+            if (error) throw error;
+
+            setComments(prev => ({
+                ...prev,
+                [postId]: prev[postId]?.filter(c => c.id !== commentId) || []
+            }));
+            setPosts(posts.map(p => p.id === postId ? { ...p, comments_count: Math.max(0, p.comments_count - 1) } : p));
+        } catch (error) {
+            console.error('Error deleting comment:', error);
+        }
+    };
+
     const handlePostComment = async (postId: string) => {
         if (!newComment.trim()) return;
         setCommenting(true);
@@ -200,10 +244,10 @@ export default function Community() {
     }, [user]); // Add user to dependency array to re-fetch likes when user logs in
 
     return (
-        <div className="container py-10 max-w-6xl">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div className="container py-6 md:py-10 max-w-6xl px-4 sm:px-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold mb-2">Community Support</h1>
+                    <h1 className="text-3xl font-extrabold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-amber-700 via-orange-700 to-emerald-700 dark:from-amber-300 dark:via-orange-300 dark:to-emerald-300">Community Support</h1>
                     <p className="text-muted-foreground">A safe space to share, connect, and heal together.</p>
                 </div>
 
@@ -241,6 +285,22 @@ export default function Community() {
                                 />
                             </div>
                             <div className="space-y-2">
+                                <Label>Category</Label>
+                                <Select
+                                    value={newPost.category}
+                                    onValueChange={(value) => setNewPost({ ...newPost, category: value })}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a category" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {categories.map((cat) => (
+                                            <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
                                 <Label htmlFor="tags">Tags (comma separated)</Label>
                                 <Input
                                     id="tags"
@@ -260,7 +320,7 @@ export default function Community() {
                 </Dialog>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 md:gap-8">
                 {/* Sidebar */}
                 <div className="space-y-6">
                     <div className="relative">
@@ -279,8 +339,18 @@ export default function Community() {
                         </CardHeader>
                         <CardContent className="p-0">
                             <ul className="divide-y">
+                                <li
+                                    className={`p-4 cursor-pointer transition-colors text-sm font-medium ${selectedCategory === null ? 'bg-primary/10 text-primary border-l-2 border-primary' : 'hover:bg-muted/50'}`}
+                                    onClick={() => setSelectedCategory(null)}
+                                >
+                                    All Categories
+                                </li>
                                 {categories.map((cat) => (
-                                    <li key={cat} className="p-4 hover:bg-muted/50 cursor-pointer transition-colors text-sm font-medium">
+                                    <li
+                                        key={cat}
+                                        className={`p-4 cursor-pointer transition-colors text-sm font-medium ${selectedCategory === cat ? 'bg-primary/10 text-primary border-l-2 border-primary' : 'hover:bg-muted/50'}`}
+                                        onClick={() => setSelectedCategory(cat)}
+                                    >
                                         {cat}
                                     </li>
                                 ))}
@@ -310,96 +380,122 @@ export default function Community() {
                     ) : posts.length === 0 ? (
                         <div className="text-center py-10 text-muted-foreground">No posts found. Be the first to share!</div>
                     ) : (
-                        posts.map((post) => (
-                            <Card key={post.id} className="hover:shadow-md transition-shadow">
-                                <CardHeader className="pb-3">
-                                    <div className="flex justify-between items-start">
-                                        <div className="flex items-center gap-3">
-                                            <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-                                                <User className="h-5 w-5 text-muted-foreground" />
+
+                        posts
+                            .filter(post => !selectedCategory || (post.tags && post.tags.includes(selectedCategory)))
+                            .filter(post =>
+                                post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                post.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                (post.tags && post.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())))
+                            )
+                            .map((post) => (
+                                <Card key={post.id} className="hover:shadow-md transition-shadow">
+                                    <CardHeader className="pb-3">
+                                        <div className="flex justify-between items-start">
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                                                    <User className="h-5 w-5 text-muted-foreground" />
+                                                </div>
+                                                <div>
+                                                    <div className="font-semibold text-sm flex items-center gap-2">
+                                                        {post.author_name}
+                                                        {post.author_role === "Verified Counselor" && (
+                                                            <span className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 text-[10px] px-2 py-0.5 rounded-full">
+                                                                Verified
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div className="text-xs text-muted-foreground">
+                                                        {new Date(post.created_at).toLocaleDateString()}
+                                                    </div>
+                                                </div>
+                                                <div className="flex gap-1">
+                                                    {user?.id === post.author_id && (
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleDeletePost(post.id)}>
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    )}
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                        <Share2 className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <div className="font-semibold text-sm flex items-center gap-2">
-                                                    {post.author_name}
-                                                    {post.author_role === "Verified Counselor" && (
-                                                        <span className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 text-[10px] px-2 py-0.5 rounded-full">
-                                                            Verified
-                                                        </span>
+                                        </div>    <CardTitle className="text-xl mt-2">{post.title}</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <p className="text-muted-foreground text-sm leading-relaxed">
+                                            {post.content}
+                                        </p>
+                                        <div className="flex flex-wrap gap-2 mt-4">
+                                            {post.tags && post.tags.map(tag => (
+                                                <Badge key={tag} variant="secondary" className="text-xs font-medium">
+                                                    #{tag}
+                                                </Badge>
+                                            ))}
+                                        </div>
+                                    </CardContent>
+                                    <CardFooter className="border-t pt-4 flex flex-col gap-4 items-start">
+                                        <div className="flex gap-6 text-muted-foreground w-full">
+                                            <button
+                                                className={`flex items-center gap-2 text-sm transition-colors ${userLikes.has(post.id) ? 'text-red-500 hover:text-red-600' : 'hover:text-primary'}`}
+                                                onClick={() => handleLike(post.id, post.likes_count)}
+                                            >
+                                                <Heart className={`h-4 w-4 ${userLikes.has(post.id) ? 'fill-current' : ''}`} /> {post.likes_count}
+                                            </button>
+                                            <button
+                                                className="flex items-center gap-2 text-sm hover:text-primary transition-colors"
+                                                onClick={() => toggleComments(post.id)}
+                                            >
+                                                <MessageSquare className="h-4 w-4" /> {post.comments_count} Comments
+                                            </button>
+                                        </div>
+
+                                        {/* Comments Section */}
+                                        {expandedPostId === post.id && (
+                                            <div className="w-full space-y-4 pt-2 animate-in fade-in slide-in-from-top-2">
+                                                <div className="space-y-3 pl-4 border-l-2 border-muted">
+                                                    {comments[post.id]?.map((comment) => (
+                                                        <div key={comment.id} className="text-sm group">
+                                                            <div className="flex items-center justify-between mb-1">
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="font-semibold text-xs">{comment.user_name}</span>
+                                                                    <span className="text-[10px] text-muted-foreground">{new Date(comment.created_at).toLocaleDateString()}</span>
+                                                                </div>
+                                                                {user?.id === comment.user_id && (
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                                                                        onClick={() => handleDeleteComment(post.id, comment.id)}
+                                                                    >
+                                                                        <Trash2 className="h-3 w-3" />
+                                                                    </Button>
+                                                                )}
+                                                            </div>
+                                                            <p className="text-muted-foreground">{comment.content}</p>
+                                                        </div>
+                                                    ))}
+                                                    {(!comments[post.id] || comments[post.id].length === 0) && (
+                                                        <p className="text-xs text-muted-foreground italic">No comments yet.</p>
                                                     )}
                                                 </div>
-                                                <div className="text-xs text-muted-foreground">
-                                                    {new Date(post.created_at).toLocaleDateString()}
+
+                                                <div className="flex gap-2 items-start pt-2">
+                                                    <Textarea
+                                                        placeholder="Write a comment..."
+                                                        className="min-h-[60px] text-sm"
+                                                        value={newComment}
+                                                        onChange={(e) => setNewComment(e.target.value)}
+                                                    />
+                                                    <Button size="icon" onClick={() => handlePostComment(post.id)} disabled={commenting}>
+                                                        <Send className="h-4 w-4" />
+                                                    </Button>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                                            <Share2 className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                    <CardTitle className="text-xl mt-2">{post.title}</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-muted-foreground text-sm leading-relaxed">
-                                        {post.content}
-                                    </p>
-                                    <div className="flex gap-2 mt-4">
-                                        {post.tags && post.tags.map(tag => (
-                                            <span key={tag} className="bg-secondary text-secondary-foreground px-2 py-1 rounded text-xs font-medium">
-                                                #{tag}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </CardContent>
-                                <CardFooter className="border-t pt-4 flex flex-col gap-4 items-start">
-                                    <div className="flex gap-6 text-muted-foreground w-full">
-                                        <button
-                                            className={`flex items-center gap-2 text-sm transition-colors ${userLikes.has(post.id) ? 'text-red-500 hover:text-red-600' : 'hover:text-primary'}`}
-                                            onClick={() => handleLike(post.id, post.likes_count)}
-                                        >
-                                            <Heart className={`h-4 w-4 ${userLikes.has(post.id) ? 'fill-current' : ''}`} /> {post.likes_count}
-                                        </button>
-                                        <button
-                                            className="flex items-center gap-2 text-sm hover:text-primary transition-colors"
-                                            onClick={() => toggleComments(post.id)}
-                                        >
-                                            <MessageSquare className="h-4 w-4" /> {post.comments_count} Comments
-                                        </button>
-                                    </div>
-
-                                    {/* Comments Section */}
-                                    {expandedPostId === post.id && (
-                                        <div className="w-full space-y-4 pt-2 animate-in fade-in slide-in-from-top-2">
-                                            <div className="space-y-3 pl-4 border-l-2 border-muted">
-                                                {comments[post.id]?.map((comment) => (
-                                                    <div key={comment.id} className="text-sm">
-                                                        <div className="flex items-center gap-2 mb-1">
-                                                            <span className="font-semibold text-xs">{comment.user_name}</span>
-                                                            <span className="text-[10px] text-muted-foreground">{new Date(comment.created_at).toLocaleDateString()}</span>
-                                                        </div>
-                                                        <p className="text-muted-foreground">{comment.content}</p>
-                                                    </div>
-                                                ))}
-                                                {(!comments[post.id] || comments[post.id].length === 0) && (
-                                                    <p className="text-xs text-muted-foreground italic">No comments yet.</p>
-                                                )}
-                                            </div>
-
-                                            <div className="flex gap-2 items-start pt-2">
-                                                <Textarea
-                                                    placeholder="Write a comment..."
-                                                    className="min-h-[60px] text-sm"
-                                                    value={newComment}
-                                                    onChange={(e) => setNewComment(e.target.value)}
-                                                />
-                                                <Button size="icon" onClick={() => handlePostComment(post.id)} disabled={commenting}>
-                                                    <Send className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    )}
-                                </CardFooter>
-                            </Card>
-                        ))
+                                        )}
+                                    </CardFooter>
+                                </Card>
+                            ))
                     )}
                 </div>
             </div>
