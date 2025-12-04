@@ -1,13 +1,13 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Shield, Lock, Heart, ArrowRight, Bell, FileText, Calendar } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { Shield, Lock, Heart, ArrowRight } from 'lucide-react';
+
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
 
 export default function LandingPage() {
-    const { isAuthenticated } = useAuth();
+
 
 
     return (
@@ -45,70 +45,6 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            {/* Dashboard Overview (Visible when logged in) */}
-            {isAuthenticated && (
-                <section className="py-12 bg-muted/30">
-                    <div className="container">
-                        <div className="flex items-center justify-between mb-8">
-                            <div>
-                                <h2 className="text-2xl font-bold">Welcome back, Jane</h2>
-                                <p className="text-muted-foreground">Here's what's happening with your account.</p>
-                            </div>
-                            <Button variant="outline" size="sm">
-                                <Bell className="mr-2 h-4 w-4" /> Notifications
-                            </Button>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <Card className="bg-background border-primary/20 shadow-sm hover:shadow-md transition-shadow">
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">Active Reports</CardTitle>
-                                    <FileText className="h-4 w-4 text-primary" />
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-2xl font-bold">1</div>
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                        <span className="text-yellow-600 font-medium">In Progress</span> • Updated 2h ago
-                                    </p>
-                                    <Button variant="link" className="px-0 h-auto mt-2 text-xs" asChild>
-                                        <Link to="/settings">View Details</Link>
-                                    </Button>
-                                </CardContent>
-                            </Card>
-                            <Card className="bg-background border-primary/20 shadow-sm hover:shadow-md transition-shadow">
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">Upcoming Sessions</CardTitle>
-                                    <Calendar className="h-4 w-4 text-primary" />
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-2xl font-bold">2</div>
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                        Next: Tomorrow, 2:00 PM
-                                    </p>
-                                    <Button variant="link" className="px-0 h-auto mt-2 text-xs" asChild>
-                                        <Link to="/counselors">Manage Appointments</Link>
-                                    </Button>
-                                </CardContent>
-                            </Card>
-                            <Card className="bg-background border-primary/20 shadow-sm hover:shadow-md transition-shadow">
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">Community Updates</CardTitle>
-                                    <Heart className="h-4 w-4 text-primary" />
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-2xl font-bold">5</div>
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                        New replies to your posts
-                                    </p>
-                                    <Button variant="link" className="px-0 h-auto mt-2 text-xs" asChild>
-                                        <Link to="/community">Go to Forum</Link>
-                                    </Button>
-                                </CardContent>
-                            </Card>
-                        </div>
-                    </div>
-                </section>
-            )}
 
 
             {/* Features Section */}

@@ -6,6 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageCircle, X, Send, Bot, User, Loader2, Minimize2 } from 'lucide-react';
 import { getChatCompletion } from '@/lib/api/gemini';
 import { motion, AnimatePresence } from 'framer-motion';
+import ReactMarkdown from 'react-markdown';
 
 // Define local interface for component state
 interface ChatMessage {
@@ -17,7 +18,7 @@ export function ChatBot() {
     const [isOpen, setIsOpen] = useState(false);
     const [isMinimized, setIsMinimized] = useState(false);
     const [messages, setMessages] = useState<ChatMessage[]>([
-        { role: 'assistant', content: "Hi, I'm Shantel. I'm here to support you. How can I help you today?" }
+        { role: 'assistant', content: "Hi, I'm Shantel. I can help you find counselors, report incidents, or get safety tips. How can I support you today?" }
     ]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -57,7 +58,7 @@ export function ChatBot() {
     };
 
     return (
-        <div className="fixed bottom-28 right-4 z-[60] flex flex-col items-end gap-2">
+        <div className="fixed bottom-20 right-4 z-[60] flex flex-col items-end gap-2 sm:bottom-24 sm:right-6">
             <AnimatePresence>
                 {isOpen && !isMinimized && (
                     <motion.div
@@ -65,30 +66,30 @@ export function ChatBot() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 20, scale: 0.95 }}
                         transition={{ duration: 0.2 }}
-                        className="w-[350px] sm:w-[400px] shadow-2xl"
+                        className="w-[calc(100vw-2rem)] sm:w-[380px] shadow-2xl origin-bottom-right"
                     >
-                        <Card className="border-primary/20 shadow-lg overflow-hidden">
-                            <CardHeader className="bg-primary/5 p-4 flex flex-row items-center justify-between space-y-0 border-b">
+                        <Card className="border-primary/20 shadow-lg overflow-hidden flex flex-col max-h-[80vh]">
+                            <CardHeader className="bg-primary/5 p-3 sm:p-4 flex flex-row items-center justify-between space-y-0 border-b shrink-0">
                                 <div className="flex items-center gap-2">
                                     <div className="bg-primary/10 p-1.5 rounded-full">
-                                        <Bot className="h-5 w-5 text-primary" />
+                                        <Bot className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                                     </div>
                                     <div>
-                                        <CardTitle className="text-base">Shantel Support</CardTitle>
-                                        <p className="text-xs text-muted-foreground">Always here to help</p>
+                                        <CardTitle className="text-sm sm:text-base">Shantel Assistant</CardTitle>
+                                        <p className="text-[10px] sm:text-xs text-muted-foreground">Always here to help</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-1">
-                                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsMinimized(true)}>
-                                        <Minimize2 className="h-4 w-4" />
+                                    <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={() => setIsMinimized(true)}>
+                                        <Minimize2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                                     </Button>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsOpen(false)}>
-                                        <X className="h-4 w-4" />
+                                    <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={() => setIsOpen(false)}>
+                                        <X className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                                     </Button>
                                 </div>
                             </CardHeader>
-                            <CardContent className="p-0">
-                                <ScrollArea className="h-[400px] p-4" ref={scrollAreaRef}>
+                            <CardContent className="p-0 flex-1 overflow-hidden">
+                                <ScrollArea className="h-[50vh] sm:h-[400px] p-3 sm:p-4" ref={scrollAreaRef}>
                                     <div className="space-y-4">
                                         {messages.map((msg, index) => (
                                             <div
@@ -96,35 +97,48 @@ export function ChatBot() {
                                                 className={`flex gap-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                                             >
                                                 {msg.role === 'assistant' && (
-                                                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
-                                                        <Bot className="h-4 w-4 text-primary" />
+                                                    <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
+                                                        <Bot className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
                                                     </div>
                                                 )}
                                                 <div
-                                                    className={`rounded-2xl px-4 py-2 max-w-[80%] text-sm ${msg.role === 'user'
+                                                    className={`rounded-2xl px-3 py-2 sm:px-4 sm:py-2 max-w-[85%] text-sm ${msg.role === 'user'
                                                         ? 'bg-primary text-primary-foreground rounded-tr-none'
                                                         : 'bg-muted text-foreground rounded-tl-none'
                                                         }`}
                                                 >
-                                                    {msg.content}
+                                                    <div className={`prose ${msg.role === 'user' ? 'prose-invert' : 'dark:prose-invert'} max-w-none text-sm prose-p:leading-relaxed prose-pre:bg-black/10 prose-pre:p-2 prose-pre:rounded-md prose-p:my-1 prose-ul:my-1 prose-li:my-0`}>
+                                                        <ReactMarkdown
+                                                            components={{
+                                                                p: ({ node, ...props }) => <p className="mb-1 last:mb-0" {...props} />,
+                                                                ul: ({ node, ...props }) => <ul className="list-disc pl-4 mb-1" {...props} />,
+                                                                ol: ({ node, ...props }) => <ol className="list-decimal pl-4 mb-1" {...props} />,
+                                                                li: ({ node, ...props }) => <li className="mb-0.5" {...props} />,
+                                                                a: ({ node, ...props }) => <a className="underline font-medium hover:opacity-80" {...props} />,
+                                                                strong: ({ node, ...props }) => <strong className="font-bold" {...props} />,
+                                                            }}
+                                                        >
+                                                            {msg.content}
+                                                        </ReactMarkdown>
+                                                    </div>
                                                 </div>
                                                 {msg.role === 'user' && (
-                                                    <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0 mt-1">
-                                                        <User className="h-4 w-4 text-primary-foreground" />
+                                                    <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0 mt-1">
+                                                        <User className="h-3 w-3 sm:h-4 sm:w-4 text-primary-foreground" />
                                                     </div>
                                                 )}
                                             </div>
                                         ))}
                                         {isLoading && (
                                             <div className="flex gap-2 justify-start">
-                                                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
-                                                    <Bot className="h-4 w-4 text-primary" />
+                                                <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
+                                                    <Bot className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
                                                 </div>
                                                 <div className="bg-muted rounded-2xl rounded-tl-none px-4 py-2 flex items-center">
                                                     <div className="flex gap-1">
-                                                        <div className="w-2 h-2 bg-primary/40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                                                        <div className="w-2 h-2 bg-primary/40 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                                                        <div className="w-2 h-2 bg-primary/40 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                                                        <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary/40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                                                        <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary/40 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                                                        <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary/40 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -132,17 +146,17 @@ export function ChatBot() {
                                     </div>
                                 </ScrollArea>
                             </CardContent>
-                            <CardFooter className="p-3 border-t bg-background">
+                            <CardFooter className="p-2 sm:p-3 border-t bg-background shrink-0">
                                 <div className="flex w-full gap-2">
                                     <Input
                                         placeholder="Type a message..."
                                         value={input}
                                         onChange={(e) => setInput(e.target.value)}
                                         onKeyDown={handleKeyDown}
-                                        className="flex-1 focus-visible:ring-primary/20"
+                                        className="flex-1 focus-visible:ring-primary/20 h-9 sm:h-10 text-sm"
                                         disabled={isLoading}
                                     />
-                                    <Button size="icon" onClick={handleSend} disabled={isLoading || !input.trim()}>
+                                    <Button size="icon" onClick={handleSend} disabled={isLoading || !input.trim()} className="h-9 w-9 sm:h-10 sm:w-10">
                                         {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                                     </Button>
                                 </div>
@@ -192,7 +206,7 @@ export function ChatBot() {
                     </Button>
 
                     {/* Tooltip Label */}
-                    <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-background/80 backdrop-blur-sm border rounded text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-sm">
+                    <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-background/80 backdrop-blur-sm border rounded text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-sm hidden sm:block">
                         Chat with Shantel
                     </div>
                 </motion.div>

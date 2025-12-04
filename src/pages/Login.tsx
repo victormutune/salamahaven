@@ -36,7 +36,7 @@ export default function Login() {
 
     return (
         <div className="container relative flex items-center justify-center min-h-screen py-6 md:py-10 px-4 sm:px-6">
-            <div className="absolute top-2 right-2 sm:top-4 sm:right-4 flex gap-2">
+            <div className="absolute top-1 right-1 sm:top-4 sm:right-4 flex gap-2">
                 <LanguageSwitcher />
                 <ModeToggle />
             </div>

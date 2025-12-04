@@ -6,6 +6,7 @@ import LandingPage from '@/pages/LandingPage';
 import ReportIncident from '@/pages/ReportIncident';
 import Emergency from '@/pages/Emergency';
 import Counselors from '@/pages/Counselors';
+import Bookings from '@/pages/Bookings';
 import Logout from '@/pages/Logout';
 import Community from '@/pages/Community';
 import Admin from '@/pages/Admin';
@@ -43,6 +44,7 @@ function App() {
               <Route path="/report" element={<ReportIncident />} />
               <Route path="/community" element={<Community />} />
               <Route path="/counselors" element={<Counselors />} />
+              <Route path="/bookings" element={<Bookings />} />
               <Route path="/emergency" element={<Emergency />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/notifications" element={<Notifications />} />

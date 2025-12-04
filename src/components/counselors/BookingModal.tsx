@@ -13,9 +13,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { useState } from "react"
 import { Calendar } from "@/components/ui/calendar"
 import { format } from "date-fns"
-import { Calendar as CalendarIcon } from "lucide-react"
+import { Calendar as CalendarIcon, Loader2 } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
+import { supabase } from "@/lib/supabase"
+import { useAuth } from "@/contexts/AuthContext"
 
 interface BookingModalProps {
     isOpen: boolean
@@ -24,13 +26,49 @@ interface BookingModalProps {
 }
 
 export function BookingModal({ isOpen, onClose, counselorName }: BookingModalProps) {
+    const { user } = useAuth()
     const [date, setDate] = useState<Date>()
+    const [reason, setReason] = useState("")
+    const [loading, setLoading] = useState(false)
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        // Mock submission
-        alert(`Appointment request sent to ${counselorName}`)
-        onClose()
+
+        if (!date) {
+            alert("Please select a date")
+            return
+        }
+
+        if (!user) {
+            alert("You must be logged in to book an appointment")
+            return
+        }
+
+        setLoading(true)
+        try {
+            const { error } = await supabase
+                .from('bookings')
+                .insert({
+                    user_id: user.id,
+                    counselor_name: counselorName,
+                    date: date.toISOString(),
+                    reason: reason,
+                    status: 'pending'
+                })
+
+            if (error) throw error
+
+            alert(`Appointment request sent to ${counselorName}`)
+            onClose()
+            // Reset form
+            setDate(undefined)
+            setReason("")
+        } catch (error: any) {
+            console.error('Error booking appointment:', error)
+            alert('Failed to book appointment: ' + error.message)
+        } finally {
+            setLoading(false)
+        }
     }
 
     return (
@@ -64,16 +102,25 @@ export function BookingModal({ isOpen, onClose, counselorName }: BookingModalPro
                                     selected={date}
                                     onSelect={setDate}
                                     initialFocus
+                                    disabled={(date) => date < new Date()}
                                 />
                             </PopoverContent>
                         </Popover>
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="reason">Reason for visit (Optional)</Label>
-                        <Textarea id="reason" placeholder="Briefly describe what you'd like to discuss..." />
+                        <Textarea
+                            id="reason"
+                            placeholder="Briefly describe what you'd like to discuss..."
+                            value={reason}
+                            onChange={(e) => setReason(e.target.value)}
+                        />
                     </div>
                     <DialogFooter>
-                        <Button type="submit">Confirm Booking</Button>
+                        <Button type="submit" disabled={loading}>
+                            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                            Confirm Booking
+                        </Button>
                     </DialogFooter>
                 </form>
             </DialogContent>

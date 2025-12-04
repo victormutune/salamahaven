@@ -1,11 +1,12 @@
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { Shield, Menu, X, Settings, Bell, PhoneCall, LogOut, Home, FileText, Users, Heart, BookOpen, AlertTriangle } from 'lucide-react';
+import { Shield, Menu, X, Settings, Bell, PhoneCall, LogOut, Home, FileText, Users, Heart, BookOpen, AlertTriangle, Calendar } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect } from 'react';
+
 
 export function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
@@ -51,6 +52,7 @@ export function Navbar() {
             { name: 'Home', path: '/', icon: Home },
             { name: 'Report', path: '/report', icon: FileText },
             { name: 'Counselors', path: '/counselors', icon: Users },
+            { name: 'Bookings', path: '/bookings', icon: Calendar },
             { name: 'Community', path: '/community', icon: Heart },
             { name: 'Resources', path: '/resources', icon: BookOpen },
             { name: 'Emergency', path: '/emergency', icon: AlertTriangle, className: 'text-red-600 dark:text-red-400 font-bold' },
@@ -86,7 +88,7 @@ export function Navbar() {
                         </Link>
 
                         {/* Desktop Nav - Centered */}
-                        <div className="hidden lg:flex items-center space-x-8 absolute left-1/2 transform -translate-x-1/2">
+                        <div className="hidden lg:flex flex-1 items-center justify-center space-x-8 px-4">
                             {navLinks.map((link) => (
                                 <NavLink
                                     key={link.path}
@@ -110,6 +112,7 @@ export function Navbar() {
 
                         {/* Right side icons */}
                         <div className="hidden lg:flex items-center space-x-2 z-10">
+
                             <ThemeToggle />
                             <Link
                                 to="/notifications"
@@ -191,6 +194,9 @@ export function Navbar() {
                         {/* Utility Bar - Icons only */}
                         <div className="flex items-center justify-between gap-2 pt-4 border-t border-border/50 px-2">
                             <div className="flex items-center gap-1">
+                                <div className="p-1">
+
+                                </div>
                                 <div className="p-1">
                                     <ThemeToggle />
                                 </div>

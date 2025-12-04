@@ -56,6 +56,9 @@ export default function Community() {
     const [commenting, setCommenting] = useState(false);
     const [userLikes, setUserLikes] = useState<Set<string>>(new Set());
 
+    const [postToDelete, setPostToDelete] = useState<string | null>(null);
+    const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+
     const fetchPosts = async () => {
         try {
             const { data: postsData, error: postsError } = await supabase
@@ -171,18 +174,44 @@ export default function Community() {
         }
     };
 
-    const handleDeletePost = async (postId: string) => {
-        if (!confirm('Are you sure you want to delete this post?')) return;
+    const confirmDeletePost = (postId: string) => {
+        setPostToDelete(postId);
+        setIsDeleteOpen(true);
+    };
+
+    const handleDeletePost = async () => {
+        if (!postToDelete) return;
+
+        console.log('Attempting to delete post:', postToDelete);
+        console.log('Current user:', user?.id);
+
         try {
-            const { error } = await supabase
+            const { error, data } = await supabase
                 .from('community_posts')
                 .delete()
-                .eq('id', postId);
+                .eq('id', postToDelete)
+                .select();
 
-            if (error) throw error;
-            setPosts(posts.filter(p => p.id !== postId));
+            if (error) {
+                console.error('Supabase delete error:', error);
+                throw error;
+            }
+
+            console.log('Delete response data:', data);
+
+            if (!data || data.length === 0) {
+                console.warn('No data returned from delete. RLS policy might be preventing deletion.');
+                alert('Could not delete post. You might not have permission (RLS policy).');
+                return;
+            }
+
+            setPosts(posts.filter(p => p.id !== postToDelete));
+            setIsDeleteOpen(false);
+            setPostToDelete(null);
+            alert('Post deleted successfully');
         } catch (error) {
             console.error('Error deleting post:', error);
+            alert('Failed to delete post. Please check console for details.');
         }
     };
 
@@ -318,6 +347,21 @@ export default function Community() {
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
+
+                <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Delete Post</DialogTitle>
+                            <DialogDescription>
+                                Are you sure you want to delete this post? This action cannot be undone.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setIsDeleteOpen(false)}>Cancel</Button>
+                            <Button variant="destructive" onClick={handleDeletePost}>Delete</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 md:gap-8">
@@ -411,7 +455,7 @@ export default function Community() {
                                                 </div>
                                                 <div className="flex gap-1">
                                                     {user?.id === post.author_id && (
-                                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleDeletePost(post.id)}>
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => confirmDeletePost(post.id)}>
                                                             <Trash2 className="h-4 w-4" />
                                                         </Button>
                                                     )}

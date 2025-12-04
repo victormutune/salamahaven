@@ -2,10 +2,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { User, Lock, Bell, Shield, Save, Loader2 } from 'lucide-react';
+import { User, Lock, Bell, Shield, Save, Loader2, FileText } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
+import { UserReports } from '@/components/reports/UserReports';
 
 export default function Settings() {
     const { user } = useAuth();
@@ -140,6 +141,15 @@ export default function Settings() {
                 <div className="md:col-span-3">
                     <Card className="border-none shadow-none bg-transparent md:bg-card md:border md:shadow-sm">
                         <CardContent className="p-0 md:p-4">
+                            {/* User Avatar & Info - Visible on Desktop */}
+                            <div className="flex flex-col items-center mb-6 hidden md:flex">
+                                <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center text-2xl font-bold text-primary mb-2">
+                                    {profile.firstName?.[0]}{profile.lastName?.[0] || profile.firstName?.[1]}
+                                </div>
+                                <p className="font-medium text-center">{profile.firstName} {profile.lastName}</p>
+                                <p className="text-xs text-muted-foreground text-center truncate w-full">{profile.email}</p>
+                            </div>
+
                             <nav className="flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-visible pb-4 md:pb-0">
                                 <Button
                                     variant={activeTab === "profile" ? "secondary" : "ghost"}
@@ -169,26 +179,27 @@ export default function Settings() {
                                 >
                                     <Shield className="mr-2 h-4 w-4" /> Privacy
                                 </Button>
+                                <Button
+                                    variant={activeTab === "reports" ? "secondary" : "ghost"}
+                                    className="justify-start"
+                                    onClick={() => setActiveTab("reports")}
+                                >
+                                    <FileText className="mr-2 h-4 w-4" /> My Reports
+                                </Button>
                             </nav>
                         </CardContent>
                     </Card>
                 </div>
 
-                {/* Content Area */}
+                {/* Main Content Area */}
                 <div className="md:col-span-9">
                     {activeTab === "profile" && (
                         <Card>
                             <CardHeader>
                                 <CardTitle>Profile Information</CardTitle>
-                                <CardDescription>Update your personal details.</CardDescription>
+                                <CardDescription>Update your personal details and public profile.</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <div className="flex items-center gap-4 mb-4">
-                                    <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center text-2xl font-bold text-primary">
-                                        {profile.firstName?.[0]}{profile.lastName?.[0] || profile.firstName?.[1]}
-                                    </div>
-                                    {/* <Button variant="outline" size="sm">Change Avatar</Button> */}
-                                </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label htmlFor="firstName">First Name</Label>
@@ -363,6 +374,10 @@ export default function Settings() {
                                 </Button>
                             </CardFooter>
                         </Card>
+                    )}
+
+                    {activeTab === "reports" && (
+                        <UserReports />
                     )}
                 </div>
             </div>
